@@ -1,1 +1,1 @@
-{"root":["./src/index.ts"],"version":"5.9.3"}
+{"root":["./src/index.ts","./src/controller/pdf.controller.ts","./src/middleware/multer.ts","./src/routes/pdf.routes.ts","./src/services/pdf.services.ts"],"version":"5.9.3"}
