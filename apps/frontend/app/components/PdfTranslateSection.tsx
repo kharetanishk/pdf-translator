@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ProgressPipeline, { type PipelineStep } from "./ProgressPipeline";
 
 type LanguageOption = { code: string; name: string };
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB
+
+const API_BASE =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) ||
+  "http://localhost:4000";
 
 // 20 most spoken languages worldwide (curated list from prompt), alphabetized by name
 const LANGUAGES: LanguageOption[] = [
@@ -187,6 +192,8 @@ export default function PdfTranslateSection() {
   const [fromLang, setFromLang] = useState("");
   const [toLang, setToLang] = useState("");
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [pipelineStep, setPipelineStep] = useState<PipelineStep>("idle");
   const [inactiveLabelIndex, setInactiveLabelIndex] = useState(0);
 
   const canTranslate = Boolean(file && fromLang && toLang);
@@ -223,12 +230,62 @@ export default function PdfTranslateSection() {
     validateAndSet(files[0]); // one file only; replace existing
   };
 
-  const onTranslate = () => {
-    // UI-only for now. Hook your API call here.
+  const onTranslate = async () => {
     setError("");
-    if (!canTranslate) return;
-    // eslint-disable-next-line no-alert
-    alert(`Translate: ${file?.name} (${fromLang} → ${toLang})`);
+    if (!canTranslate || !file) return;
+    setIsLoading(true);
+    setPipelineStep("extracting");
+
+    const translateTimer = setTimeout(() => {
+      setPipelineStep((s) => (s === "extracting" ? "translating" : s));
+    }, 2000);
+
+    try {
+      const formData = new FormData();
+      formData.append("pdfFile", file);
+      formData.append("sourceLang", fromLang);
+      formData.append("targetLang", toLang);
+
+      const res = await fetch(`${API_BASE}/api/pdf/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      clearTimeout(translateTimer);
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const msg =
+          (json as { message?: string }).message ??
+          res.statusText ??
+          "Translation failed";
+        setError(msg);
+        setPipelineStep("idle");
+        setIsLoading(false);
+        return;
+      }
+
+      setPipelineStep("generating");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "translated.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setPipelineStep("done");
+      setTimeout(() => {
+        setPipelineStep("idle");
+        setIsLoading(false);
+      }, 1500);
+    } catch (err) {
+      clearTimeout(translateTimer);
+      setError(err instanceof Error ? err.message : "Network error");
+      setPipelineStep("idle");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -360,19 +417,22 @@ export default function PdfTranslateSection() {
               />
             </div>
 
+            {/* Pipeline (visible during translation) */}
+            <ProgressPipeline currentStep={pipelineStep} />
+
             {/* CTA */}
             <div className="mt-9 sm:mt-10 flex justify-center">
               <button
                 type="button"
                 onClick={onTranslate}
-                disabled={!canTranslate}
-                aria-disabled={!canTranslate}
+                disabled={!canTranslate || isLoading}
+                aria-disabled={!canTranslate || isLoading}
                 className={[
                   "w-full sm:w-[min(520px,100%)]",
                   "rounded-2xl px-6 py-4 sm:py-5",
                   "font-semibold",
                   "transition duration-300",
-                  canTranslate
+                  canTranslate && !isLoading
                     ? "bg-[#EDEDED] text-[#0B0F18] hover:bg-white shadow-[0_10px_40px_rgba(255,255,255,0.10)] premium-cta-pulse"
                     : "bg-[#0B0F18]/70 text-[#EDEDED] cursor-not-allowed border border-white/12 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] hover:border-white/18",
                   "focus:outline-none focus:ring-2 focus:ring-white/20 hover:brightness-[1.06]",
@@ -381,7 +441,9 @@ export default function PdfTranslateSection() {
                 <span className="relative block w-full">
                   {/* Fixed-height label slot to prevent layout shift */}
                   <span className="btn-label-slot">
-                    {canTranslate ? (
+                    {isLoading ? (
+                      <span className="btn-label-static">Translating…</span>
+                    ) : canTranslate ? (
                       <span className="btn-label-static">Translate PDF</span>
                     ) : (
                       <span
