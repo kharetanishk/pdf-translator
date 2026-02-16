@@ -1,135 +1,254 @@
-# Turborepo starter
+# Global PDF Translation System
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack AI-powered PDF Translation application that allows users to upload a PDF, translate it into multiple languages, and download a newly generated translated PDF.
 
-## Using this example
+The system uses a processing pipeline architecture:
 
-Run the following command:
+Upload PDF → Extract Text → Translate → Generate PDF → Download
 
-```sh
-npx create-turbo@latest
-```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## ✨ Features
 
-### Apps and Packages
+### Core Features
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- Upload PDF files
+- Automatic text extraction
+- AI-based translation using Google Translate API
+- Multi-language support
+- PDF regeneration with proper formatting
+- Automatic file download
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### User Experience
 
-### Utilities
+- Drag & drop upload
+- Language selection
+- Pipeline-style progress loader
+- Error handling and validation
 
-This Turborepo has some additional tools already setup for you:
+### Engineering Highlights
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- Service-based backend architecture
+- Modular processing pipeline
+- Unicode-safe multilingual rendering
+- Dynamic font mapping
+- Automatic line wrapping and page breaks
 
-### Build
+---
 
-To build all apps and packages, run the following command:
+## 🌍 Supported Languages
 
-```
-cd my-turborepo
+- Arabic
+- Bengali
+- English
+- French
+- German
+- Hindi
+- Indonesian
+- Japanese
+- Korean
+- Mandarin Chinese
+- Marathi
+- Portuguese
+- Russian
+- Spanish
+- Swahili
+- Tamil
+- Telugu
+- Turkish
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+---
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+## 🧱 Tech Stack
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Frontend
+- Next.js 16
+- React 19
+- Tailwind CSS
+- TypeScript
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### Backend
+- Express 5
+- TypeScript
+- Multer (file upload)
+- Google Translate API
+- PDFKit (PDF generation)
+- unpdf (PDF text extraction)
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### Monorepo
+- Turborepo
+- pnpm
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## 📁 Project Structure
 
-```
-cd my-turborepo
+apps/
+backend/
+src/
+controllers/
+services/
+routes/
+middleware/
+fonts/
+frontend/
+app/
+components/
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+content/
+docs/
+packages/
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+## 🚀 Getting Started
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+### 1. Clone Repository
 
-### Remote Caching
+```bash
+git clone <your-repository-url>
+cd <project-folder>
+2. Install Dependencies
+Install all monorepo dependencies:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+pnpm install
+3. Environment Variables (IMPORTANT)
+Create a .env file inside:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+apps/backend/.env
+Add the following:
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+PORT=4000
+GOOGLE_TRANSLATE_API_KEY=YOUR_GOOGLE_TRANSLATE_API_KEY
+🔑 Getting Google Translate API Key
+Go to Google Cloud Console:
+https://console.cloud.google.com/
 
-```
-cd my-turborepo
+Create a new project (or select existing).
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+Enable Cloud Translation API.
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+Go to:
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+APIs & Services → Credentials
+Create an API Key.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Copy the key and paste it into:
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+apps/backend/.env
+🔤 Font Setup (Required for Multi-language PDFs)
+To properly render languages like Hindi, Arabic, Japanese, etc., add Noto fonts inside:
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+apps/backend/fonts/
+Required files:
 
-## Useful Links
+NotoSans-Regular.ttf
+NotoSansDevanagari-Regular.ttf
+NotoSansBengali-Regular.ttf
+NotoSansArabic-Regular.ttf
+NotoSansJP-Regular.otf
+NotoSansKR-Regular.otf
+NotoSansSC-Regular.otf
+NotoSansTamil-Regular.ttf
+NotoSansTelugu-Regular.ttf
+You can download these from:
 
-Learn more about the power of Turborepo:
+https://fonts.google.com/noto
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Important:
+
+Use static font files
+
+Avoid variable fonts
+
+Filenames must match exactly
+
+▶️ Running the Project
+Run Backend
+cd apps/backend
+pnpm dev
+Backend runs on:
+
+http://localhost:4000
+Run Frontend
+Open new terminal:
+
+cd apps/frontend
+pnpm dev
+Frontend runs on:
+
+http://localhost:3000
+🧪 Application Flow
+Upload a PDF.
+
+Select source and target language.
+
+Click Translate PDF.
+
+Progress pipeline runs:
+
+Extracting Text
+
+Translating Text
+
+Generating PDF
+
+Translated PDF downloads automatically.
+
+🧠 Architecture Overview
+Frontend (Next.js)
+        ↓
+Express API
+        ↓
+Extraction Service
+        ↓
+Translation Service
+        ↓
+PDF Builder Service
+Service Responsibilities
+Extraction Service
+
+Extract text from uploaded PDF.
+
+Translation Service
+
+Translate text using Google Translate API.
+
+Uses chunking for large documents.
+
+PDF Builder Service
+
+Generate clean translated PDF.
+
+Applies automatic wrapping and page breaks.
+
+⚠️ Common Setup Issues
+1. Text appears as symbols
+Ensure required Noto fonts exist inside:
+
+apps/backend/fonts/
+2. Translation fails
+Check:
+
+GOOGLE_TRANSLATE_API_KEY
+is set correctly.
+
+3. Download not working
+Ensure backend is running on correct port.
+
+📌 Future Improvements
+Layout-preserving translation (advanced)
+
+OCR support for scanned PDFs
+
+Batch document translation
+
+Real-time backend progress tracking
+
+User history and storage
+
+👨‍💻 Author
+Final Year Project — Global PDF Translation System
+--Tanishk khare
