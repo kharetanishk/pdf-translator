@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { extractText, getDocumentProxy } from "unpdf";
+import { extractFromPdf } from "../services/extraction.service";
+import { translate } from "../services/translation.service";
+import { buildPdf } from "../services/pdfBuilder.service";
 
 export const uploadPdfController = async (req: Request, res: Response) => {
-  const originalWarn = console.warn;
-  console.warn = () => {};
   try {
     if (!req.file || !req.file.buffer) {
       return res.status(400).json({
@@ -13,37 +13,44 @@ export const uploadPdfController = async (req: Request, res: Response) => {
         message: "No Pdf buffer found. Ensure Multer is using memoryStorage.",
       });
     }
+
+    const sourceLang = String(req.body?.sourceLang ?? "").trim();
+    const targetLang = String(req.body?.targetLang ?? "").trim();
+    if (!sourceLang || !targetLang) {
+      return res.status(400).json({
+        success: false,
+        message: "sourceLang and targetLang are required",
+      });
+    }
+
+    const extractionResult = await extractFromPdf(req.file.buffer);
+
     const outputDir = path.join(process.cwd(), "parsetext");
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-
-    // 1. Convert Node.js Buffer to Uint8Array
-    const pdfData = new Uint8Array(req.file.buffer);
-
-    const data = await getDocumentProxy(pdfData);
-    const extractedText = await extractText(data);
-    console.log(extractedText);
-    const text = extractedText.text.join("\n");
-
     const fileName = `output-${Date.now()}.txt`;
-    const filePath = path.join(outputDir, fileName);
-    fs.writeFileSync(filePath, text);
-    console.log(`Text saved to: ${filePath}`);
+    fs.writeFileSync(path.join(outputDir, fileName), extractionResult.text);
+    console.log(`Text saved to: ${path.join(outputDir, fileName)}`);
 
-    return res.status(200).json({
-      success: true,
-      message: "Pdf parsed successfully",
-      fileName: fileName,
-      totalPages: extractedText.totalPages,
-      text: extractedText.text.join("\n"),
-    });
+    const { translatedText } = await translate(
+      extractionResult.text,
+      sourceLang,
+      targetLang
+    );
+
+    const pdfBuffer = await buildPdf(translatedText);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="translated.pdf"'
+    );
+    return res.status(200).send(pdfBuffer);
   } catch (error) {
-    console.error("Error parsing pdf:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
-  } finally {
-    console.warn = originalWarn;
+    console.error("Error processing pdf:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return res.status(500).json({ success: false, message });
   }
 };
