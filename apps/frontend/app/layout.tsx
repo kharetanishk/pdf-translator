@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Comic_Neue} from "next/font/google";
+import { Comic_Neue } from "next/font/google";
 import "./globals.css";
+import Footer from "./components/Footer";
 
 const comicNeue = Comic_Neue({
   subsets: ["latin"],
@@ -9,10 +10,10 @@ const comicNeue = Comic_Neue({
   variable: "--font-comic-neue  ",
 });
 
-
 export const metadata: Metadata = {
   title: "Global PDF Services",
-  description: "Global PDF Services is a platform that allows you to translate PDF files into multiple languages.",
+  description:
+    "Global PDF Services is a platform that allows you to translate PDF files into multiple languages.",
 };
 
 export default function RootLayout({
@@ -23,9 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${comicNeue.variable} antialiased`}
+        className={`${comicNeue.variable} flex min-h-screen flex-col antialiased`}
       >
-        {children}
+        <div className="flex flex-1 flex-col">{children}</div>
+        <Footer />
       </body>
     </html>
   );
