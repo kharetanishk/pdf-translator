@@ -7,7 +7,6 @@ const FONT_SIZE = 11;
 const LINE_GAP = 3;
 const PARAGRAPH_GAP = 8;
 
-/** Language code → font filename (in fonts/ directory) */
 const FONT_MAP: Record<string, string> = {
   ar: "NotoSansArabic-Regular.ttf",
   bn: "NotoSansBengali-Regular.ttf",
@@ -31,7 +30,6 @@ const FONT_MAP: Record<string, string> = {
   vi: "NotoSans-Regular.ttf",
 };
 
-/** Unicode ranges → lang code for font selection */
 const SCRIPT_RANGES: { pattern: RegExp; lang: string }[] = [
   { pattern: /[\u0600-\u06FF\u0750-\u077F]/g, lang: "ar" }, // Arabic
   { pattern: /[\u0900-\u097F]/g, lang: "hi" }, // Devanagari
@@ -47,10 +45,6 @@ const SCRIPT_RANGES: { pattern: RegExp; lang: string }[] = [
 const FONTS_DIR = path.join(process.cwd(), "fonts");
 const DEFAULT_FONT = "NotoSans-Regular.ttf";
 
-/**
- * Returns the font file path for the given language code.
- * Falls back to default Latin font if the specific font is not found.
- */
 export function getFontPathByLanguage(lang: string): string | null {
   const normalized = (lang || "").toLowerCase().trim();
   const filename = FONT_MAP[normalized] ?? DEFAULT_FONT;
@@ -64,9 +58,6 @@ export function getFontPathByLanguage(lang: string): string | null {
   return null;
 }
 
-/**
- * Detects the dominant script in the text and returns a lang code for font selection.
- */
 function detectLangFromText(text: string): string {
   if (!text || typeof text !== "string") return "en";
   let maxCount = 0;
@@ -85,7 +76,7 @@ function detectLangFromText(text: string): string {
 
 export async function buildPdf(
   translatedText: string,
-  options?: { targetLang?: string }
+  options?: { targetLang?: string },
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: MARGIN, size: "A4" });
@@ -99,15 +90,14 @@ export async function buildPdf(
     const textWidth = pageWidth - MARGIN * 2;
 
     const text = (translatedText ?? "").trim();
-    const lang =
-      (options?.targetLang ?? "").trim() || detectLangFromText(text);
+    const lang = (options?.targetLang ?? "").trim() || detectLangFromText(text);
     const fontPath = getFontPathByLanguage(lang);
 
     if (fontPath) {
       doc.font(fontPath);
     } else if (text && /[^\x00-\x7F]/.test(text)) {
       console.warn(
-        `[pdfBuilder] No font found for "${lang}". Add fonts to apps/backend/fonts/ (see fonts/README.md). Unicode may not render correctly.`
+        `[pdfBuilder] No font found for "${lang}". Add fonts to apps/backend/fonts/ (see fonts/README.md). Unicode may not render correctly.`,
       );
     }
     doc.fontSize(FONT_SIZE);

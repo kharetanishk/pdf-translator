@@ -1,16 +1,12 @@
-const GOOGLE_TRANSLATE_URL = "https://translation.googleapis.com/language/translate/v2";
+const GOOGLE_TRANSLATE_URL =
+  "https://translation.googleapis.com/language/translate/v2";
 
-/** Google Translate API v2 limit: ~5000 chars per request. Use 4000 to stay safe. */
 const MAX_CHUNK_CHARS = 4000;
 
 export interface TranslateResult {
   translatedText: string;
 }
 
-/**
- * Split text into chunks at paragraph boundaries, respecting MAX_CHUNK_CHARS.
- * Preserves paragraph structure by not splitting mid-paragraph when possible.
- */
 function chunkByParagraphs(text: string, maxChars: number): string[] {
   if (text.length <= maxChars) return [text];
 
@@ -65,7 +61,7 @@ async function translateChunk(
   chunk: string,
   sourceLang: string,
   targetLang: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<string> {
   const body = new URLSearchParams({
     q: chunk,
@@ -85,7 +81,9 @@ async function translateChunk(
   });
 
   if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+    const err = (await res.json().catch(() => ({}))) as {
+      error?: { message?: string };
+    };
     const msg = err?.error?.message ?? res.statusText;
     throw new Error(`Google Translate API error: ${msg}`);
   }
@@ -103,7 +101,7 @@ async function translateChunk(
 export async function translate(
   text: string,
   sourceLang: string,
-  targetLang: string
+  targetLang: string,
 ): Promise<TranslateResult> {
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
   if (!apiKey?.trim()) {
@@ -119,7 +117,12 @@ export async function translate(
   const results: string[] = [];
 
   for (const chunk of chunks) {
-    const translated = await translateChunk(chunk, sourceLang, targetLang, apiKey);
+    const translated = await translateChunk(
+      chunk,
+      sourceLang,
+      targetLang,
+      apiKey,
+    );
     results.push(translated);
   }
 
